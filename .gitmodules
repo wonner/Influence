@@ -1,0 +1,3 @@
+[submodule "Dynamicgem"]
+	path = Dynamicgem
+	url = https://github.com/palash1992/DynamicGEM
