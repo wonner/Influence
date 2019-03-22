@@ -6,7 +6,7 @@ sys.path.append('/Users/yangwan/Desktop/code/digit/DynamicGEM')
 
 from DynamicGEM.dynamicgem.embedding.ae_static    import AE
 
-file = open('output/feature.txt')
+#file = open('output/feature.txt')
 # 读入有向图
 directGraph = nx.read_adjlist('/Users/yangwan/Desktop/code/digit/data/slashdot1.txt',create_using=nx.DiGraph())
 
@@ -28,5 +28,5 @@ embedding = AE(d            = dim_emb,
 
 emb,_ = embedding.learn_embeddings(directGraph)
 
-file.write(emb)
+#file.write(emb)
 

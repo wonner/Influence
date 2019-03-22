@@ -1,4 +1,4 @@
-from filecmp import cmp
+
 
 file = open('data/slashdot.txt')
 writefile = open('data/slashdot1.txt','w')
