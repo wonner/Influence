@@ -8,7 +8,7 @@ from DynamicGEM.dynamicgem.embedding.ae_static    import AE
 
 #file = open('output/feature.txt')
 # 读入有向图
-directGraph = nx.read_adjlist('/Users/yangwan/Desktop/code/digit/data/slashdot1.txt',create_using=nx.DiGraph())
+directGraph = nx.read_adjlist('data/wiki-Vote.txt',create_using=nx.DiGraph())
 
 # 向量维数
 dim_emb = 128
@@ -19,8 +19,8 @@ embedding = AE(d            = dim_emb,
                K          = 3,
                n_units    = [500, 300, ],
                n_iter     = 200,
-               xeta       = 1e-4,
-               n_batch    = 100,
+               xeta       = 1e-5,
+               n_batch    = 1,
                modelfile  = ['./intermediate/enc_modelsbm.json',
                              './intermediate/dec_modelsbm.json'],
                weightfile = ['./intermediate/enc_weightssbm.hdf5',

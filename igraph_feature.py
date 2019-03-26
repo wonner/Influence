@@ -3,10 +3,9 @@ import random
 import queue
 import numpy as np
 import sys
-import networkx as nx
+
 sys.path.append('/Users/yangwan/Desktop/code/digit/DynamicGEM')
 from DynamicGEM.dynamicgem.embedding.ae_static    import AE
-
 
 # 删除节点
 #graph.delete_vertices(77359)
@@ -24,7 +23,7 @@ def networkfeature(graph):
     # coreness mode = OUT out-coreness out-degree
     coreness = ig.Graph.coreness(graph,mode = 1)
     # 度 out度计算，不计算self-loop
-    degree = ig.Graph.degree(graph,range(77360),1,False)
+    degree = ig.Graph.degree(graph,range(graph.vcount()),1,False)
     # hub score
     hubscore = ig.Graph.hub_score(graph)
     # authority score
@@ -35,7 +34,6 @@ def networkfeature(graph):
     clustering = ig.Graph.transitivity_local_undirected(graph)
     featurematrix = np.vstack((eigen,coreness,degree,hubscore,authorityscore,pagerank,clustering))
     return featurematrix.T
-
 
 #random.seed(2019)
 
@@ -59,14 +57,12 @@ def infestimate(random,graph,id):
                     inf = inf + 1
     return inf
 
-#inf = infestimate(random,graph,77359)
-#print(inf)
+# inf = infestimate(random,graph,7446)
+# print(inf)
 
-def load_data(filename,trainpercent=0.1):
+
+def load_data(graph,directGraph,trainpercent=0.1):
     random.seed(2019)
-    # 读入有向图
-    directGraph = nx.read_adjlist(filename,create_using=nx.DiGraph())
-    graph = ig.Graph.Read_Edgelist(filename,True)
     # 计算特征
     igraphfeature = networkfeature(graph)
     dim_emb = 128
@@ -76,7 +72,7 @@ def load_data(filename,trainpercent=0.1):
                nu2        = 1e-6,
                K          = 3,
                n_units    = [500, 300, ],
-               n_iter     = 100,
+               n_iter     = 30,
                xeta       = 1e-4,
                n_batch    = 100,)
 
@@ -86,15 +82,19 @@ def load_data(filename,trainpercent=0.1):
     vertexnumber = graph.vcount()
     traindata = []
     traintarget = []
-    deleteid = []
-    for i in range(int(vertexnumber*trainpercent)):
-        nodeid = int(vertexnumber*random.random())
-        inf=infestimate(random,graph,nodeid)
-        traindata.append(feature[nodeid])
+    nodeid = random.sample(range(vertexnumber),int(vertexnumber*trainpercent))
+    #
+    nodeid.sort()
+    for i in nodeid:
+        inf=infestimate(random,graph,i)
+        traindata.append(feature[i])
         traintarget.append(inf)
-        deleteid.append(nodeid)
-    # 删除训练集节点
-    np.delete(feature,deleteid,0)
+    # 删除训练集节点特征
+    feature = np.delete(feature,nodeid,0)
+    # 反向删除训练集节点索引
+    remain = list(range(vertexnumber))
+    for i in nodeid[::-1]:
+        remain.remove(remain(i))
 
-    return embedding, (np.array(traindata), np.array(traintarget), feature)
+    return embedding, (np.array(traindata), np.array(traintarget), nodeid, feature, remain)
 
