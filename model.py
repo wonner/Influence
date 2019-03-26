@@ -25,10 +25,11 @@ def build_model():
 # 种子数量
 k=2
 graph = ig.Graph.Read_Edgelist('data/karate.txt',True)
+reverseGraph = ig.Graph.Read_Edgelist('data/karate-reverse.txt',True)
 graph.delete_vertices(0)
 directGraph = nx.read_adjlist('data/karate.txt',create_using=nx.DiGraph())
 
-embedding, (sample_data, sample_targets, sample_id, prediction, prediction_id) = igraph_feature.load_data(graph,directGraph,0.9)
+embedding, (sample_data, sample_targets, sample_id, prediction, prediction_id) = igraph_feature.load_data(graph,reverseGraph,directGraph,0.9)
 margin = int(len(sample_targets)*0.1)
 test_data = sample_data[0:margin,]
 test_targets = sample_targets[0:margin]

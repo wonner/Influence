@@ -17,7 +17,7 @@ from DynamicGEM.dynamicgem.embedding.ae_static    import AE
 #closeness = ig.Graph.closeness(graph,mode = 1)
 
 
-def networkfeature(graph):
+def networkfeature(graph,reverseGraph):
     # 特征向量中心度
     eigen = ig.Graph.eigenvector_centrality(graph,directed=True)
     # coreness mode = OUT out-coreness out-degree
@@ -25,11 +25,11 @@ def networkfeature(graph):
     # 度 out度计算，不计算self-loop
     degree = ig.Graph.degree(graph,range(graph.vcount()),1,False)
     # hub score
-    hubscore = ig.Graph.hub_score(graph)
+    hubscore = ig.Graph.hub_score(reverseGraph)
     # authority score
-    authorityscore = ig.Graph.authority_score(graph)
+    authorityscore = ig.Graph.authority_score(reverseGraph)
     # pagerank
-    pagerank = graph.pagerank()
+    pagerank = reverseGraph.pagerank()
     # Clustering Coefficient 局部集聚系数 相邻节点形成一个团的紧密程度
     clustering = ig.Graph.transitivity_local_undirected(graph)
     featurematrix = np.vstack((eigen,coreness,degree,hubscore,authorityscore,pagerank,clustering))
@@ -74,7 +74,11 @@ def load_data(graph,directGraph,trainpercent=0.1):
                n_units    = [500, 300, ],
                n_iter     = 30,
                xeta       = 1e-4,
-               n_batch    = 100,)
+               n_batch    = 100,
+               modelfile  = ['data/enc_modelsbm.json',
+                             'data/dec_modelsbm.json'],
+               weightfile = ['data/enc_weightssbm.hdf5',
+                             'data/dec_weightssbm.hdf5'])
 
     emb,_ = embedding.learn_embeddings(directGraph)
     feature = np.hstack(igraphfeature,emb)
