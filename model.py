@@ -83,12 +83,13 @@ seeds.append(seed)
 
 # 选取剩余种子节点
 while len(seeds) != k:
-    graph.delete_vergraph.delete_vertices(seed)
+    graph.delete_vertices(seed)
+    reverseGraph.delete_vertices(seed)
     directGraph.remove_node(remain[seed])
     remain.remove(seed)
 
     feature = []
-    feature.append(igraph_feature.networkfeature(graph))
+    feature.append(igraph_feature.networkfeature(graph,reverseGraph))
     feature.append(embedding.learn_embedding(directGraph))
     feature -= mean
     feature /= std
