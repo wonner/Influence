@@ -37,14 +37,15 @@ def networkfeature(graph,reverseGraph):
 
 #random.seed(2019)
 
-def infestimate(random,graph,id):
+def infestimate(random,graph,id_list):
     inf = 1
     # 已激活节点标记
     visited = {}
-    visited[id] = 1
     # 待激活下一级节点队列
     q = queue.Queue()
-    q.put(id)
+    for id in id_list:
+        visited[id] = 1
+        q.put(id)
     while not q.empty():
         node = q.get()
         neighborhood = graph.neighbors(node,mode=1)
@@ -72,9 +73,9 @@ def load_data(graph,reverseGraph,directGraph,trainpercent=0.1):
                nu2        = 1e-6,
                K          = 3,
                n_units    = [500, 300, ],
-               n_iter     = 30,
+               n_iter     = 100,
                xeta       = 1e-4,
-               n_batch    = 30,
+               n_batch    = graph.vcount(),
                modelfile  = ['data/enc_modelsbm.json',
                              'data/dec_modelsbm.json'],
                weightfile = ['data/enc_weightssbm.hdf5',
@@ -87,10 +88,9 @@ def load_data(graph,reverseGraph,directGraph,trainpercent=0.1):
     traindata = []
     traintarget = []
     nodeid = random.sample(range(vertexnumber),int(vertexnumber*trainpercent))
-    #
     nodeid.sort()
     for i in nodeid:
-        inf=infestimate(random,graph,i)
+        inf=infestimate(random,graph,[i])
         traindata.append(feature[i])
         traintarget.append(inf)
     # 删除训练集节点特征

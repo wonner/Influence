@@ -9,6 +9,7 @@ import igraph_feature
 import networkx as nx
 import igraph as ig
 import numpy as np
+import random
 
 def build_model():
     # Because we will need to instantiate
@@ -24,11 +25,11 @@ def build_model():
 
 # 种子数量
 k=2
-graph = ig.Graph.Read_Edgelist('data/karate.txt',True)
-reverseGraph = ig.Graph.Read_Edgelist('data/karate-reverse.txt',True)
-directGraph = nx.read_adjlist('data/karate.txt',create_using=nx.DiGraph())
+graph = ig.Graph.Read_Edgelist('data/slashdot.txt',True)
+reverseGraph = ig.Graph.Read_Edgelist('data/slashdot-reverse.txt',True)
+directGraph = nx.read_adjlist('data/slashdot.txt',create_using=nx.DiGraph())
 
-embedding, (sample_data, sample_targets, sample_id, prediction, prediction_id) = igraph_feature.load_data(graph,reverseGraph,directGraph,0.9)
+embedding, (sample_data, sample_targets, sample_id, prediction, prediction_id) = igraph_feature.load_data(graph,reverseGraph,directGraph,0.1)
 margin = int(len(sample_targets)*0.1)
 test_data = sample_data[0:margin,]
 test_targets = sample_targets[0:margin]
@@ -37,8 +38,8 @@ train_targets = sample_targets[margin:len(sample_targets)]
 print(train_data.shape)
 
 # 参数设置
-batch_size = 27
-num_epoch = 10
+batch_size = 100
+num_epoch = 100
 validation_split = 0.1
 
 # 正则化
@@ -57,12 +58,12 @@ mae_history = history.history['mean_absolute_error']
 test_mse_score, test_mae_score = model.evaluate(test_data, test_targets)
 print(test_mae_score)
 
-# 绘制验证误差随轮次变化曲线
-plt.plot(range(1, len(mae_history) + 1), mae_history)
-plt.xlabel('Epochs')
-plt.ylabel('Validation MAE')
-#plt.savefig('data/curve.png')
-plt.show()
+# # 绘制验证误差随轮次变化曲线
+# plt.plot(range(1, len(mae_history) + 1), mae_history)
+# plt.xlabel('Epochs')
+# plt.ylabel('Validation MAE')
+# plt.savefig('data/curve.png')
+# #plt.show()
 
 predict = model.predict(prediction)
 
@@ -89,7 +90,9 @@ while len(seeds) != k:
     directGraph.remove_node(str(remain[seed]))
     remain.remove(seed)
 
+    embedding.set_n_batch(graph.vcount())
     emb,_ = embedding.learn_embedding(directGraph)
+
     feature = np.hstack((igraph_feature.networkfeature(graph,reverseGraph),emb))
     feature -= mean
     feature /= std
@@ -103,3 +106,5 @@ while len(seeds) != k:
     seeds.append(remain[seed])
 
 print(seeds)
+graph = ig.Graph.Read_Edgelist('data/slashdot.txt',True)
+print('influence node:'+ igraph_feature.infestimate(random.seed(2019),graph,seeds))
