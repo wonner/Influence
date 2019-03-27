@@ -61,11 +61,11 @@ def infestimate(random,graph,id):
 # print(inf)
 
 
-def load_data(graph,directGraph,trainpercent=0.1):
+def load_data(graph,reverseGraph,directGraph,trainpercent=0.1):
     random.seed(2019)
     # 计算特征
-    igraphfeature = networkfeature(graph)
-    dim_emb = 128
+    igraphfeature = networkfeature(graph,reverseGraph)
+    dim_emb = 4
     embedding = AE(d            = dim_emb,
                beta       = 5,
                nu1        = 1e-6,
@@ -74,14 +74,14 @@ def load_data(graph,directGraph,trainpercent=0.1):
                n_units    = [500, 300, ],
                n_iter     = 30,
                xeta       = 1e-4,
-               n_batch    = 100,
+               n_batch    = 30,
                modelfile  = ['data/enc_modelsbm.json',
                              'data/dec_modelsbm.json'],
                weightfile = ['data/enc_weightssbm.hdf5',
                              'data/dec_weightssbm.hdf5'])
 
     emb,_ = embedding.learn_embeddings(directGraph)
-    feature = np.hstack(igraphfeature,emb)
+    feature = np.hstack((igraphfeature,emb))
     # 抽取部分点作为训练集
     vertexnumber = graph.vcount()
     traindata = []
@@ -98,7 +98,7 @@ def load_data(graph,directGraph,trainpercent=0.1):
     # 反向删除训练集节点索引
     remain = list(range(vertexnumber))
     for i in nodeid[::-1]:
-        remain.remove(remain(i))
+        remain.remove(remain[i])
 
     return embedding, (np.array(traindata), np.array(traintarget), nodeid, feature, remain)
 

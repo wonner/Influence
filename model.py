@@ -26,7 +26,6 @@ def build_model():
 k=2
 graph = ig.Graph.Read_Edgelist('data/karate.txt',True)
 reverseGraph = ig.Graph.Read_Edgelist('data/karate-reverse.txt',True)
-graph.delete_vertices(0)
 directGraph = nx.read_adjlist('data/karate.txt',create_using=nx.DiGraph())
 
 embedding, (sample_data, sample_targets, sample_id, prediction, prediction_id) = igraph_feature.load_data(graph,reverseGraph,directGraph,0.9)
@@ -35,10 +34,11 @@ test_data = sample_data[0:margin,]
 test_targets = sample_targets[0:margin]
 train_data = sample_data[margin:len(sample_targets),]
 train_targets = sample_targets[margin:len(sample_targets)]
+print(train_data.shape)
 
 # 参数设置
 batch_size = 27
-num_epoch = 100
+num_epoch = 10
 validation_split = 0.1
 
 # 正则化
@@ -51,8 +51,8 @@ test_data -= mean
 test_data /= std
 
 model = build_model()
-history = model.fit(train_data,test_data,batch_size,num_epoch,validation_split)
-mae_history = history.history['val_mean_absolute_error']
+history = model.fit(train_data,train_targets,batch_size,num_epoch,validation_split)
+mae_history = history.history['mean_absolute_error']
 
 test_mse_score, test_mae_score = model.evaluate(test_data, test_targets)
 print(test_mae_score)
@@ -61,7 +61,8 @@ print(test_mae_score)
 plt.plot(range(1, len(mae_history) + 1), mae_history)
 plt.xlabel('Epochs')
 plt.ylabel('Validation MAE')
-plt.savefig('data/curve.png')
+#plt.savefig('data/curve.png')
+plt.show()
 
 predict = model.predict(prediction)
 
@@ -85,12 +86,11 @@ seeds.append(seed)
 while len(seeds) != k:
     graph.delete_vertices(seed)
     reverseGraph.delete_vertices(seed)
-    directGraph.remove_node(remain[seed])
+    directGraph.remove_node(str(remain[seed]))
     remain.remove(seed)
 
-    feature = []
-    feature.append(igraph_feature.networkfeature(graph,reverseGraph))
-    feature.append(embedding.learn_embedding(directGraph))
+    emb,_ = embedding.learn_embedding(directGraph)
+    feature = np.hstack((igraph_feature.networkfeature(graph,reverseGraph),emb))
     feature -= mean
     feature /= std
     predict = model.predict(np.array(feature))
